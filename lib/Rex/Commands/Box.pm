@@ -18,7 +18,7 @@ Version <= 1.0: All these functions will not be reported.
 
  set box => "VBox";
 
- group all_my_boxes => map { get_box($_->{name})->{ip} } list_boxes;
+ group all_my_boxes => map { get_box_ip($_->{name}) } list_boxes;
 
  task mytask => sub {
 
@@ -82,7 +82,7 @@ use vars qw(@EXPORT %vm_infos $VM_STRUCT);
 use Rex::Box;
 
 #@EXPORT = qw(box $box);
-@EXPORT = qw(box list_boxes get_box boxes);
+@EXPORT = qw(box list_boxes get_box get_box_ip boxes);
 
 Rex::Config->register_set_handler(
   "box",
@@ -214,6 +214,24 @@ sub list_boxes {
   };
 
   return @{$ref};
+}
+
+=head2 get_box_ip($box_name)
+
+This function returns the primary IP address of a Rex/Box.
+
+ task "get_box_ip", sub {
+   say get_box_ip($box_name);
+ };
+
+=cut
+
+sub get_box_ip {
+  my ($box_name) = @_;
+
+  my $box = Rex::Box->create( name => $box_name );
+
+  return $box->ip;
 }
 
 =head2 get_box($box_name)
