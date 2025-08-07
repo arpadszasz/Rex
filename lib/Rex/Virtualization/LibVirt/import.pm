@@ -103,15 +103,44 @@ sub execute {
     }
   }
 
+  my @storage = (
+    {
+      file        => "$file",
+      dev         => "vda",
+      driver_type => $format,
+    },
+  );
+
+  if ( my $user_data = $opt{__cloud_init} ) {
+    my $iso_file  = $cwd . '/storage/cidata.iso';
+    my $yaml_file = $cwd . '/tmp/user-data.yaml';
+
+    open( my $fh, '>', $yaml_file ) or die($!);
+    print $fh $user_data;
+    close($fh);
+
+    Rex::Logger::debug("creating cloud-init ISO in $iso_file'");
+    i_run "cloud-localds $iso_file $yaml_file", fail_ok => 1;
+
+    if ( $? != 0 ) {
+      Rex::Logger::info(
+        "Can't create cloud-init ISO $iso_file. "
+          . 'You must have cloud-localds installed.',
+        'warn'
+      );
+    }
+    else {
+      push @storage,
+        {
+        file   => $iso_file,
+        device => 'cdrom',
+        };
+    }
+  }
+
   Rex::Virtualization::LibVirt::create->execute(
     $dom,
-    storage => [
-      {
-        file        => "$file",
-        dev         => "vda",
-        driver_type => $format,
-      },
-    ],
+    storage        => \@storage,
     network        => \@network,
     serial_devices => \@serial_devices,
     memory         => $opt{memory},

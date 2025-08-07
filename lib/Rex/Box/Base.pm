@@ -253,6 +253,34 @@ sub network {
   $self->{__network} = \%option;
 }
 
+=head2 cloud_init($user_data)
+
+Sets the cloud-init user-data for provisioning a cloud image. Works only on KVM.
+
+Depends on C<cloud-localds> from the L<cloud-utils|https://github.com/canonical/cloud-utils> package.
+
+  my $user_data = <<'EOF';
+  #cloud-config
+  ssh_pwauth: true
+  users:
+    - name: rex
+      plain_text_passwd: box
+      lock_passwd: false
+      sudo: ["ALL=(ALL) NOPASSWD:ALL"]
+      groups: sudo
+      shell: /bin/bash
+      homedir: /home/rex
+  EOF
+
+  $box->cloud_init($user_data);
+
+=cut
+
+sub cloud_init {
+  my ( $self, $user_data ) = @_;
+  $self->{__cloud_init} = $user_data;
+}
+
 =head2 forward_port(%option)
 
 Set ports to be forwarded to the VM. This is not supported by all Box providers.
